@@ -178,6 +178,7 @@ export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme })
         <MessageList
           messages={chat.messages}
           username={chat.username}
+          onReact={chat.reactToMessage}
         />
 
         <TypingIndicator typingUsers={chat.typingUsers} />

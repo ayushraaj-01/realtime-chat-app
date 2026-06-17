@@ -1234,6 +1234,59 @@ kbd {
   transform: scale(1.15);
 }
 
+/* Message Bubble Reactions */
+.message-bubble__reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+.message-bubble--own .message-bubble__reactions {
+  align-self: flex-end;
+}
+
+.message-bubble__reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.message-bubble__reaction:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
+}
+
+.message-bubble__reaction--active {
+  background: var(--color-accent-gradient-subtle);
+  border-color: var(--color-accent-light);
+  color: var(--color-accent-light);
+}
+
+.message-bubble__reaction--active:hover {
+  background: var(--color-accent-gradient-subtle);
+  border-color: var(--color-accent-light);
+}
+
+.message-bubble__reaction-emoji {
+  font-size: 0.8rem;
+}
+
+.message-bubble__reaction-count {
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
 /* System Notifications */
 .message-system {
   display: flex;

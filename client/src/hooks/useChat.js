@@ -66,12 +66,21 @@ export function useChat() {
       });
     }
 
+    function onReactionUpdate({ messageId, reactions }) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, reactions } : msg
+        )
+      );
+    }
+
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('message:new', onNewMessage);
     socket.on('room:users', onRoomUsers);
     socket.on('room:list', onRoomList);
     socket.on('typing:update', onTypingUpdate);
+    socket.on('message:reaction', onReactionUpdate);
 
     return () => {
       socket.off('connect', onConnect);
@@ -80,6 +89,7 @@ export function useChat() {
       socket.off('room:users', onRoomUsers);
       socket.off('room:list', onRoomList);
       socket.off('typing:update', onTypingUpdate);
+      socket.off('message:reaction', onReactionUpdate);
     };
   }, []);
 
@@ -158,6 +168,10 @@ export function useChat() {
     }, 2000);
   }, []);
 
+  const reactToMessage = useCallback((messageId, emoji) => {
+    socket.emit('message:react', { messageId, emoji });
+  }, []);
+
   const disconnect = useCallback(() => {
     socket.disconnect();
     clearSession();
@@ -200,6 +214,7 @@ export function useChat() {
     sendMessage,
     switchRoom,
     handleTyping,
+    reactToMessage,
     disconnect,
     tryRejoin,
     hasSavedSession: !!loadSession(),

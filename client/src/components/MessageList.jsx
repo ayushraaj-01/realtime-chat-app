@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import MessageBubble from './MessageBubble';
 
-export default function MessageList({ messages, username }) {
+export default function MessageList({ messages, username, onReact }) {
   const listRef = useRef(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const isNearBottomRef = useRef(true);
@@ -68,6 +68,8 @@ export default function MessageList({ messages, username }) {
             key={msg.id}
             message={msg}
             isOwn={msg.username === username}
+            currentUsername={username}
+            onReact={onReact}
           />
         ))}
       </div>

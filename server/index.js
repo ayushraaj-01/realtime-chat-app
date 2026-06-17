@@ -147,10 +147,46 @@ io.on('connection', (socket) => {
       username: user.username,
       color: user.color,
       timestamp: new Date().toISOString(),
+      reactions: {},
     };
 
     addMessage(user.room, message);
     io.to(user.room).emit('message:new', message);
+  });
+
+  // --- React to Message ---
+  socket.on('message:react', ({ messageId, emoji }) => {
+    const user = connectedUsers.get(socket.id);
+    if (!user) return;
+
+    const messages = roomMessages.get(user.room) || [];
+    const message = messages.find((m) => m.id === messageId);
+    if (!message) return;
+
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+
+    if (!message.reactions[emoji]) {
+      message.reactions[emoji] = [];
+    }
+
+    const index = message.reactions[emoji].indexOf(user.username);
+    if (index > -1) {
+      // Toggle off: remove user's username
+      message.reactions[emoji].splice(index, 1);
+      if (message.reactions[emoji].length === 0) {
+        delete message.reactions[emoji];
+      }
+    } else {
+      // Toggle on: add user's username
+      message.reactions[emoji].push(user.username);
+    }
+
+    io.to(user.room).emit('message:reaction', {
+      messageId,
+      reactions: message.reactions,
+    });
   });
 
   // --- Typing Indicators ---
