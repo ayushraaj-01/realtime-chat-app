@@ -31,6 +31,7 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
   },
   pingTimeout: 60000,
+  maxHttpBufferSize: 10 * 1024 * 1024, // 10 MB to support file attachments
 });
 
 // ---------------------------------------------------------------------------
@@ -136,19 +137,30 @@ io.on('connection', (socket) => {
   });
 
   // --- Send Message ---
-  socket.on('message:send', ({ text }) => {
+  socket.on('message:send', ({ text, attachment }) => {
     const user = connectedUsers.get(socket.id);
-    if (!user || !text?.trim()) return;
+    if (!user) return;
+    // Allow messages with only attachments (no text required)
+    if (!text?.trim() && !attachment) return;
 
     const message = {
       id: `msg-${Date.now()}-${Math.random()}`,
       type: 'user',
-      text: text.trim(),
+      text: (text || '').trim(),
       username: user.username,
       color: user.color,
       timestamp: new Date().toISOString(),
       reactions: {},
     };
+
+    if (attachment) {
+      message.attachment = {
+        name: attachment.name,
+        type: attachment.type,
+        size: attachment.size,
+        dataUrl: attachment.dataUrl,
+      };
+    }
 
     addMessage(user.room, message);
     io.to(user.room).emit('message:new', message);

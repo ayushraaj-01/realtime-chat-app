@@ -116,9 +116,18 @@ export function useChat() {
     });
   }, []);
 
-  const sendMessage = useCallback((text) => {
-    if (!text?.trim()) return;
-    socket.emit('message:send', { text });
+  const sendMessage = useCallback((text, attachment) => {
+    if (!text?.trim() && !attachment) return;
+    const payload = { text: text || '' };
+    if (attachment) {
+      payload.attachment = {
+        name: attachment.name,
+        type: attachment.type,
+        size: attachment.size,
+        dataUrl: attachment.dataUrl,
+      };
+    }
+    socket.emit('message:send', payload);
     // Stop typing when message is sent
     if (isTypingRef.current) {
       socket.emit('typing:stop');

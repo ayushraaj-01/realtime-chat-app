@@ -42,25 +42,44 @@ export default function MessageInput({ onSend, onTyping, disabled }) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if ((!text.trim() && !attachedFile) || disabled) return;
-    
-    let messageText = text;
+
+    let attachment = null;
     if (attachedFile) {
-      messageText += `\n📎 [Attached File: ${attachedFile.name}]`;
+      attachment = await readFileAsDataURL(attachedFile);
     }
-    
-    onSend(messageText);
+
+    onSend(text, attachment);
     setText('');
     setAttachedFile(null);
     setSelection({ start: 0, end: 0 });
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+  };
+
+  // Read file as base64 data URL
+  const readFileAsDataURL = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: reader.result,
+        });
+      };
+      reader.onerror = () => {
+        resolve({ name: file.name, type: file.type, size: file.size, dataUrl: null });
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleKeyDown = (e) => {
