@@ -132,7 +132,10 @@ function AttachmentPreview({ attachment }) {
   );
 }
 
-export default function MessageBubble({ message, isOwn, currentUsername, onReact }) {
+export default function MessageBubble({ message, isOwn, currentUsername, onReact, isPinned, onPinToggle }) {
+  const [showMore, setShowMore] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   if (message.type === 'system') {
     return (
       <div className="message-system">
@@ -148,8 +151,27 @@ export default function MessageBubble({ message, isOwn, currentUsername, onReact
     minute: '2-digit',
   });
 
+  const handleCopyText = () => {
+    if (message.text) {
+      navigator.clipboard.writeText(message.text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+    setShowMore(false);
+  };
+
+  const handleExtraReact = (emoji) => {
+    onReact?.(message.id, emoji);
+    setShowMore(false);
+  };
+
+  const handlePin = () => {
+    onPinToggle?.(message);
+    setShowMore(false);
+  };
+
   return (
-    <div className={`message-bubble ${isOwn ? 'message-bubble--own' : 'message-bubble--other'}`}>
+    <div className={`message-bubble ${isOwn ? 'message-bubble--own' : 'message-bubble--other'} ${isPinned ? 'message-bubble--pinned' : ''}`}>
       {/* Floating Hover Reactions bar */}
       <div className="message-bubble__actions">
         <button 
@@ -168,18 +190,69 @@ export default function MessageBubble({ message, isOwn, currentUsername, onReact
           onClick={() => onReact?.(message.id, '😂')}
         >😂</button>
         <button 
-          className="message-bubble__action-btn" 
-          title="React 🎉"
-          onClick={() => onReact?.(message.id, '🎉')}
-        >🎉</button>
-        <button className="message-bubble__action-btn" title="More Actions">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="19" cy="12" r="1" />
-            <circle cx="5" cy="12" r="1" />
-          </svg>
-        </button>
+          className={`message-bubble__action-btn ${isPinned ? 'message-bubble__action-btn--active' : ''}`}
+          title={isPinned ? 'Unpin Message' : 'Pin Message'}
+          onClick={handlePin}
+        >📌</button>
+        
+        {/* More Actions Toggle */}
+        <div style={{ position: 'relative' }}>
+          <button 
+            className={`message-bubble__action-btn ${showMore ? 'message-bubble__action-btn--active' : ''}`}
+            title="More Actions"
+            onClick={() => setShowMore(!showMore)}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="19" cy="12" r="1" />
+              <circle cx="5" cy="12" r="1" />
+            </svg>
+          </button>
+
+          {/* More Options Dropdown */}
+          {showMore && (
+            <div className="message-bubble__more-dropdown">
+              <button className="message-bubble__more-item" onClick={handlePin}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="17" x2="12" y2="22" />
+                  <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.5A2 2 0 0 1 15 9.26V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.26a2 2 0 0 1-.78 1.24l-2.78 3.5a2 2 0 0 0-.44 1.24Z" />
+                </svg>
+                {isPinned ? 'Unpin Message' : 'Pin Message'}
+              </button>
+
+              {message.text && (
+                <button className="message-bubble__more-item" onClick={handleCopyText}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                  {copied ? 'Copied!' : 'Copy Text'}
+                </button>
+              )}
+              
+              <div className="message-bubble__more-divider" />
+              <div className="message-bubble__more-title">More Reactions</div>
+              <div className="message-bubble__more-emojis">
+                {['🚀', '🔥', '😮', '💡', '👏', '💩', '💯'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    className="message-bubble__more-emoji-btn"
+                    onClick={() => handleExtraReact(emoji)}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {isPinned && (
+        <div className="message-bubble__pinned-indicator">
+          <span>📌 Pinned Message</span>
+        </div>
+      )}
 
       <div className="message-bubble__wrapper">
         {!isOwn && (

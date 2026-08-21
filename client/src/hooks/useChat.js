@@ -209,6 +209,18 @@ export function useChat() {
     }
   }, [joinRoom]);
 
+  const [pinnedMessages, setPinnedMessages] = useState([]);
+
+  const togglePinMessage = useCallback((message) => {
+    setPinnedMessages((prev) => {
+      const exists = prev.some((m) => m.id === message.id);
+      if (exists) {
+        return prev.filter((m) => m.id !== message.id);
+      }
+      return [...prev, message];
+    });
+  }, []);
+
   return {
     isConnected,
     messages,
@@ -219,6 +231,8 @@ export function useChat() {
     username,
     userColor,
     isRejoining,
+    pinnedMessages,
+    togglePinMessage,
     joinRoom,
     sendMessage,
     switchRoom,

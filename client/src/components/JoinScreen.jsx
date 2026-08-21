@@ -59,6 +59,11 @@ export default function JoinScreen({ rooms, onJoin, theme, onToggleTheme }) {
 
   return (
     <div className="join-screen" id="join-screen">
+      {/* Ambient orbs for depth */}
+      <div className="join-screen__orb-1" />
+      <div className="join-screen__orb-2" />
+      <div className="join-screen__orb-3" />
+
       {/* Floating Theme Toggle */}
       <button
         type="button"
@@ -67,7 +72,7 @@ export default function JoinScreen({ rooms, onJoin, theme, onToggleTheme }) {
         title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       >
         {theme === 'dark' ? (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="5" />
             <line x1="12" y1="1" x2="12" y2="3" />
             <line x1="12" y1="21" x2="12" y2="23" />
@@ -79,19 +84,16 @@ export default function JoinScreen({ rooms, onJoin, theme, onToggleTheme }) {
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
           </svg>
         ) : (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
         )}
       </button>
 
       <div className="join-card">
-        {/* Top accent bar */}
-        <div className="join-card__accent" />
-
         <div className="join-card__logo">
           <div className="join-card__icon-wrapper">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </div>
@@ -106,7 +108,7 @@ export default function JoinScreen({ rooms, onJoin, theme, onToggleTheme }) {
             </label>
             <div className="form-group__input-wrapper">
               <span className="form-group__input-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>

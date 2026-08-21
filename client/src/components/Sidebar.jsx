@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const getRoomIcon = (roomName) => {
   const normalized = roomName.toLowerCase();
   if (normalized === 'general' || normalized === 'random') {
@@ -49,26 +51,59 @@ export default function Sidebar({
   onLeave,
   isOpen,
 }) {
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   const getRoomCount = (roomName) => {
     const data = roomData?.find((r) => r.name === roomName);
     return data?.userCount ?? 0;
   };
 
+  const handleCopyInvite = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+    setShowWorkspaceMenu(false);
+  };
+
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`} id="sidebar">
       {/* Workspace Header Dropdown */}
-      <div className="sidebar__workspace-header">
-        <button className="sidebar__workspace-btn" id="workspace-select">
+      <div className="sidebar__workspace-header" style={{ position: 'relative' }}>
+        <button 
+          className="sidebar__workspace-btn" 
+          id="workspace-select"
+          onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
+        >
           <div className="sidebar__workspace-name-wrapper">
             <div className="sidebar__workspace-logo">F</div>
             <span className="sidebar__workspace-name">FlowChat Workspace</span>
           </div>
-          <span className="sidebar__workspace-arrow">
+          <span className="sidebar__workspace-arrow" style={{ transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </span>
         </button>
+
+        {showWorkspaceMenu && (
+          <div className="sidebar__workspace-dropdown">
+            <div className="sidebar__workspace-dropdown-header">
+              FlowChat Community
+            </div>
+            <button className="sidebar__workspace-dropdown-item" onClick={handleCopyInvite}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              {copiedLink ? 'Invite Link Copied!' : 'Copy Invite Link'}
+            </button>
+            <div className="sidebar__workspace-dropdown-info">
+              <span>Channels: {rooms.length}</span>
+              <span>Online Now: {users.length}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Rooms Section Header */}

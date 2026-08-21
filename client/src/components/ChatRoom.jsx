@@ -47,12 +47,20 @@ const getRoomIcon = (roomName) => {
 
 export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showChannelDetails, setShowChannelDetails] = useState(false);
+  const [showPinnedItems, setShowPinnedItems] = useState(false);
+  const [notificationsMuted, setNotificationsMuted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSwitchRoom = async (roomName) => {
     if (roomName === chat.currentRoom) return;
     await chat.switchRoom(roomName);
     setSidebarOpen(false);
   };
+
+  const filteredMessages = searchQuery.trim()
+    ? chat.messages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase()))
+    : chat.messages;
 
   return (
     <div className="chat-layout" id="chat-room">
@@ -111,31 +119,130 @@ export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme })
               type="text"
               placeholder={`Search ${chat.currentRoom ? chat.currentRoom.toLowerCase() : 'channel'}...`}
               className="chat-header__search-input"
-              readOnly
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {searchQuery && (
+              <button 
+                className="chat-header__search-clear"
+                onClick={() => setSearchQuery('')}
+              >✕</button>
+            )}
           </div>
 
           {/* Right Controls */}
           <div className="chat-header__actions">
-            <button className="chat-header__action-btn" title="Toggle Notifications">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
+            {/* Notifications Toggle */}
+            <button
+              className={`chat-header__action-btn ${notificationsMuted ? 'chat-header__action-btn--muted' : ''}`}
+              title={notificationsMuted ? 'Notifications Muted' : 'Notifications On'}
+              onClick={() => setNotificationsMuted(!notificationsMuted)}
+            >
+              {notificationsMuted ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
+                  <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              )}
             </button>
-            <button className="chat-header__action-btn" title="Pinned Items">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="17" x2="12" y2="22" />
-                <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.5A2 2 0 0 1 15 9.26V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.26a2 2 0 0 1-.78 1.24l-2.78 3.5a2 2 0 0 0-.44 1.24Z" />
-              </svg>
-            </button>
-            <button className="chat-header__action-btn" title="Channel Details">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-            </button>
+
+            {/* Pinned Items Toggle */}
+            <div style={{ position: 'relative' }}>
+              <button
+                className={`chat-header__action-btn ${showPinnedItems ? 'chat-header__action-btn--active' : ''}`}
+                title="Pinned Items"
+                onClick={() => {
+                  setShowPinnedItems(!showPinnedItems);
+                  setShowChannelDetails(false);
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="17" x2="12" y2="22" />
+                  <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.5A2 2 0 0 1 15 9.26V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.26a2 2 0 0 1-.78 1.24l-2.78 3.5a2 2 0 0 0-.44 1.24Z" />
+                </svg>
+              </button>
+
+              {showPinnedItems && (
+                <div className="header-dropdown header-dropdown--pinned">
+                  <div className="header-dropdown__header">
+                    📌 Pinned Items in #{chat.currentRoom} ({chat.pinnedMessages?.length || 0})
+                  </div>
+                  <div className="header-dropdown__content">
+                    {chat.pinnedMessages && chat.pinnedMessages.length > 0 ? (
+                      chat.pinnedMessages.map((pm) => (
+                        <div key={pm.id} className="pinned-item">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span className="pinned-item__title">{pm.username}</span>
+                            <button
+                              className="pinned-item__unpin"
+                              onClick={() => chat.togglePinMessage(pm)}
+                              title="Unpin"
+                            >✕</button>
+                          </div>
+                          <p className="pinned-item__text">{pm.text || '[Attachment]'}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="pinned-item">
+                        <span className="pinned-item__title">No pinned messages yet</span>
+                        <p className="pinned-item__text">Hover over any message and click the 📌 icon to pin it here!</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Channel Details Toggle */}
+            <div style={{ position: 'relative' }}>
+              <button
+                className={`chat-header__action-btn ${showChannelDetails ? 'chat-header__action-btn--active' : ''}`}
+                title="Channel Details"
+                onClick={() => {
+                  setShowChannelDetails(!showChannelDetails);
+                  setShowPinnedItems(false);
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </button>
+
+              {showChannelDetails && (
+                <div className="header-dropdown header-dropdown--details">
+                  <div className="header-dropdown__header">
+                    ℹ️ About #{chat.currentRoom}
+                  </div>
+                  <div className="header-dropdown__content">
+                    <div className="detail-row">
+                      <span className="detail-label">Active Users:</span>
+                      <span className="detail-value">{chat.users.length} online</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Total Messages:</span>
+                      <span className="detail-value">{chat.messages.length}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Pinned Messages:</span>
+                      <span className="detail-value">{chat.pinnedMessages?.length || 0}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Topic:</span>
+                      <span className="detail-value">Realtime chat in {chat.currentRoom}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Theme Toggle Button */}
             <button
@@ -176,9 +283,11 @@ export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme })
         </header>
 
         <MessageList
-          messages={chat.messages}
+          messages={filteredMessages}
           username={chat.username}
           onReact={chat.reactToMessage}
+          pinnedMessages={chat.pinnedMessages}
+          onPinToggle={chat.togglePinMessage}
         />
 
         <TypingIndicator typingUsers={chat.typingUsers} />
