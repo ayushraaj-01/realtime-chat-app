@@ -137,14 +137,14 @@ io.on('connection', (socket) => {
   });
 
   // --- Send Message ---
-  socket.on('message:send', ({ text, attachment }) => {
+  socket.on('message:send', ({ text, attachment, replyTo }) => {
     const user = connectedUsers.get(socket.id);
     if (!user) return;
     // Allow messages with only attachments (no text required)
     if (!text?.trim() && !attachment) return;
 
     const message = {
-      id: `msg-${Date.now()}-${Math.random()}`,
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: 'user',
       text: (text || '').trim(),
       username: user.username,
@@ -159,6 +159,15 @@ io.on('connection', (socket) => {
         type: attachment.type,
         size: attachment.size,
         dataUrl: attachment.dataUrl,
+      };
+    }
+
+    if (replyTo) {
+      message.replyTo = {
+        id: replyTo.id,
+        username: replyTo.username,
+        text: replyTo.text,
+        attachmentName: replyTo.attachmentName || replyTo.attachment?.name,
       };
     }
 

@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import MessageBubble from './MessageBubble';
 
-export default function MessageList({ messages, username, onReact, pinnedMessages = [], onPinToggle }) {
+export default function MessageList({ messages, username, onReact, pinnedMessages = [], onPinToggle, onReply }) {
   const listRef = useRef(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const isNearBottomRef = useRef(true);
@@ -49,7 +49,7 @@ export default function MessageList({ messages, username, onReact, pinnedMessage
         <div className="chat-empty__hints">
           <span className="chat-empty__hint">💡 Type a message below</span>
           <span className="chat-empty__hint">🔗 Share the link to invite friends</span>
-          <span className="chat-empty__hint">🔄 Messages sync in real-time</span>
+          <span className="chat-empty__hint">🔄 Double click any message to reply</span>
         </div>
       </div>
     );
@@ -72,6 +72,7 @@ export default function MessageList({ messages, username, onReact, pinnedMessage
             onReact={onReact}
             isPinned={pinnedMessages.some(m => m.id === msg.id)}
             onPinToggle={onPinToggle}
+            onReply={onReply}
           />
         ))}
       </div>

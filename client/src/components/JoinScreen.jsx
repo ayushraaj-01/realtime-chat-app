@@ -41,10 +41,130 @@ const getRoomIcon = (roomName) => {
   );
 };
 
+function CuteMascot({ isFocused, textLength, isJoining }) {
+  // Eye tracking offset calculation based on text input length (0 to 20 chars)
+  const eyeShiftX = isFocused ? Math.min(Math.max((textLength - 10) * 0.7, -7), 7) : 0;
+  const eyeShiftY = isFocused ? 3 : 0;
+
+  // Head tilt based on text length
+  const headRotation = isFocused ? Math.min(Math.max((textLength - 10) * 0.5, -5), 5) : 0;
+
+  return (
+    <div className={`cute-mascot ${isJoining ? 'cute-mascot--celebrating' : ''}`}>
+      <svg
+        width="110"
+        height="95"
+        viewBox="0 0 120 100"
+        className="cute-mascot__svg"
+      >
+        <defs>
+          <linearGradient id="mascotBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f472b6" />
+            <stop offset="50%" stopColor="#ec4899" />
+            <stop offset="100%" stopColor="#db2777" />
+          </linearGradient>
+          <linearGradient id="mascotEar" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fb7185" />
+            <stop offset="100%" stopColor="#f43f5e" />
+          </linearGradient>
+          <linearGradient id="mascotBelly" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#fdf2f8" />
+            <stop offset="100%" stopColor="#fce7f3" />
+          </linearGradient>
+        </defs>
+
+        {/* Soft Background Aura */}
+        <circle cx="60" cy="55" r="42" fill="rgba(244, 114, 182, 0.25)" />
+
+        {/* Head & Body Group with tilt rotation */}
+        <g
+          transform={`rotate(${headRotation}, 60, 55)`}
+          style={{ transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+        >
+          {/* Left Ear */}
+          <g className="cute-mascot__ear cute-mascot__ear--left">
+            <circle cx="32" cy="24" r="13" fill="url(#mascotBody)" />
+            <circle cx="32" cy="24" r="7" fill="url(#mascotEar)" opacity="0.85" />
+          </g>
+
+          {/* Right Ear */}
+          <g className="cute-mascot__ear cute-mascot__ear--right">
+            <circle cx="88" cy="24" r="13" fill="url(#mascotBody)" />
+            <circle cx="88" cy="24" r="7" fill="url(#mascotEar)" opacity="0.85" />
+          </g>
+
+          {/* Main Head / Body */}
+          <path
+            d="M26 58 C26 30, 94 30, 94 58 C94 82, 26 82, 26 58 Z"
+            fill="url(#mascotBody)"
+          />
+
+          {/* Soft Snout / Face Plate */}
+          <ellipse cx="60" cy="62" rx="22" ry="16" fill="url(#mascotBelly)" />
+
+          {/* Cute Nose */}
+          <ellipse cx="60" cy="54" rx="5" ry="3.5" fill="#0f172a" />
+          <circle cx="58.5" cy="53" r="1" fill="#ffffff" />
+
+          {/* Cute Mouth */}
+          <path
+            d={isJoining ? "M53 62 Q60 72 67 62" : "M54 61 Q60 67 66 61"}
+            fill={isJoining ? "#f43f5e" : "none"}
+            stroke="#0f172a"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+
+          {/* Blush Cheeks */}
+          <ellipse cx="38" cy="60" rx="5" ry="3" fill="#f472b6" opacity="0.6" />
+          <ellipse cx="82" cy="60" rx="5" ry="3" fill="#f472b6" opacity="0.6" />
+
+          {/* Left Eye */}
+          <g transform={`translate(${eyeShiftX}, ${eyeShiftY})`} style={{ transition: 'transform 0.15s ease-out' }}>
+            <circle cx="44" cy="46" r="7.5" fill="#ffffff" />
+            <circle cx="44" cy="46" r="4" fill="#0f172a" />
+            <circle cx="42.5" cy="44.5" r="1.5" fill="#ffffff" />
+          </g>
+
+          {/* Right Eye */}
+          <g transform={`translate(${eyeShiftX}, ${eyeShiftY})`} style={{ transition: 'transform 0.15s ease-out' }}>
+            <circle cx="76" cy="46" r="7.5" fill="#ffffff" />
+            <circle cx="76" cy="46" r="4" fill="#0f172a" />
+            <circle cx="74.5" cy="44.5" r="1.5" fill="#ffffff" />
+          </g>
+
+          {/* Cute Paws resting on the bottom edge */}
+          <ellipse
+            cx="34"
+            cy={isJoining ? 32 : 78}
+            rx="8"
+            ry="7"
+            fill="url(#mascotBelly)"
+            stroke="#ec4899"
+            strokeWidth="1.5"
+            style={{ transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+          />
+          <ellipse
+            cx="86"
+            cy={isJoining ? 32 : 78}
+            rx="8"
+            ry="7"
+            fill="url(#mascotBelly)"
+            stroke="#ec4899"
+            strokeWidth="1.5"
+            style={{ transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+          />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 export default function JoinScreen({ rooms, onJoin, theme, onToggleTheme }) {
   const [username, setUsername] = useState('');
   const [selectedRoom, setSelectedRoom] = useState(rooms[0]?.name || 'General');
   const [isJoining, setIsJoining] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,12 +211,14 @@ export default function JoinScreen({ rooms, onJoin, theme, onToggleTheme }) {
       </button>
 
       <div className="join-card">
+        {/* Animated Cute Mascot */}
+        <CuteMascot
+          isFocused={isInputFocused}
+          textLength={username.length}
+          isJoining={isJoining}
+        />
+
         <div className="join-card__logo">
-          <div className="join-card__icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </div>
           <h1 className="join-card__title">FlowChat</h1>
           <p className="join-card__subtitle">Real-time conversations, beautifully simple</p>
         </div>
@@ -120,6 +242,8 @@ export default function JoinScreen({ rooms, onJoin, theme, onToggleTheme }) {
                 placeholder="What should we call you?"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
                 maxLength={20}
                 autoFocus
                 autoComplete="off"

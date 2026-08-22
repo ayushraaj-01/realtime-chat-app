@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 
 const EMOJIS = ['😀', '😂', '👍', '❤️', '🔥', '🎉', '😮', '😢', '👏', '🚀', '🤔', '👀', '✨', '💯'];
 
-export default function MessageInput({ onSend, onTyping, disabled }) {
+export default function MessageInput({ onSend, onTyping, disabled, replyTarget, onCancelReply }) {
   const [text, setText] = useState('');
   const [attachedFile, setAttachedFile] = useState(null);
   const [showEmojis, setShowEmojis] = useState(false);
@@ -21,6 +21,13 @@ export default function MessageInput({ onSend, onTyping, disabled }) {
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }
   }, [text]);
+
+  // Focus textarea when reply target is set
+  useEffect(() => {
+    if (replyTarget && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [replyTarget]);
 
   // Handle clicking outside emoji picker to close it
   useEffect(() => {
@@ -50,7 +57,7 @@ export default function MessageInput({ onSend, onTyping, disabled }) {
       attachment = await readFileAsDataURL(attachedFile);
     }
 
-    onSend(text, attachment);
+    onSend(text, attachment, replyTarget);
     setText('');
     setAttachedFile(null);
     setSelection({ start: 0, end: 0 });
@@ -83,7 +90,9 @@ export default function MessageInput({ onSend, onTyping, disabled }) {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Escape' && replyTarget) {
+      onCancelReply?.();
+    } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -198,6 +207,32 @@ export default function MessageInput({ onSend, onTyping, disabled }) {
       />
 
       <div className="message-input__wrapper">
+        {/* WhatsApp-Style Reply Preview Banner */}
+        {replyTarget && (
+          <div className="message-input__reply-banner">
+            <div className="message-input__reply-info">
+              <div className="message-input__reply-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'scaleX(-1)' }}>
+                  <polyline points="9 17 4 12 9 7" />
+                  <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                </svg>
+                <span>Replying to <strong>{replyTarget.username}</strong></span>
+              </div>
+              <div className="message-input__reply-text">
+                {replyTarget.text || (replyTarget.attachment?.name ? `[Attachment: ${replyTarget.attachment.name}]` : '[Attachment]')}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="message-input__reply-cancel"
+              onClick={onCancelReply}
+              title="Cancel reply"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Formatting Toolbar */}
         <div className="message-input__toolbar">
           <button type="button" className="message-input__tool-btn" onClick={handleBold} title="Bold">B</button>

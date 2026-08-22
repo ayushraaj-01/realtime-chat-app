@@ -45,6 +45,15 @@ const getRoomIcon = (roomName) => {
   );
 };
 
+const getRoomThemeClass = (roomName) => {
+  const norm = roomName ? roomName.toLowerCase() : 'general';
+  if (norm === 'general') return 'room-theme--general';
+  if (norm === 'tech') return 'room-theme--tech';
+  if (norm === 'random') return 'room-theme--random';
+  if (norm === 'gaming') return 'room-theme--gaming';
+  return 'room-theme--custom';
+};
+
 export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChannelDetails, setShowChannelDetails] = useState(false);
@@ -62,8 +71,10 @@ export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme })
     ? chat.messages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase()))
     : chat.messages;
 
+  const roomThemeClass = getRoomThemeClass(chat.currentRoom);
+
   return (
-    <div className="chat-layout" id="chat-room">
+    <div className={`chat-layout ${roomThemeClass}`} id="chat-room" data-room-theme={chat.currentRoom?.toLowerCase() || 'general'}>
       {/* Mobile sidebar toggle */}
       <button
         className="sidebar__mobile-toggle"
@@ -288,6 +299,7 @@ export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme })
           onReact={chat.reactToMessage}
           pinnedMessages={chat.pinnedMessages}
           onPinToggle={chat.togglePinMessage}
+          onReply={chat.setReplyTarget}
         />
 
         <TypingIndicator typingUsers={chat.typingUsers} />
@@ -296,6 +308,8 @@ export default function ChatRoom({ chat, rooms, onLeave, theme, onToggleTheme })
           onSend={chat.sendMessage}
           onTyping={chat.handleTyping}
           disabled={!chat.isConnected}
+          replyTarget={chat.replyTarget}
+          onCancelReply={() => chat.setReplyTarget(null)}
         />
       </main>
     </div>

@@ -116,7 +116,9 @@ export function useChat() {
     });
   }, []);
 
-  const sendMessage = useCallback((text, attachment) => {
+  const [replyTarget, setReplyTarget] = useState(null);
+
+  const sendMessage = useCallback((text, attachment, replyTo) => {
     if (!text?.trim() && !attachment) return;
     const payload = { text: text || '' };
     if (attachment) {
@@ -127,7 +129,16 @@ export function useChat() {
         dataUrl: attachment.dataUrl,
       };
     }
+    if (replyTo) {
+      payload.replyTo = {
+        id: replyTo.id,
+        username: replyTo.username,
+        text: replyTo.text,
+        attachmentName: replyTo.attachment?.name,
+      };
+    }
     socket.emit('message:send', payload);
+    setReplyTarget(null);
     // Stop typing when message is sent
     if (isTypingRef.current) {
       socket.emit('typing:stop');
@@ -233,6 +244,8 @@ export function useChat() {
     isRejoining,
     pinnedMessages,
     togglePinMessage,
+    replyTarget,
+    setReplyTarget,
     joinRoom,
     sendMessage,
     switchRoom,
